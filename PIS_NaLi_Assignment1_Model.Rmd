@@ -211,7 +211,7 @@ plot(density(resid(model_g1g2p)))
 #Create a QQ plotqqPlot(model, main="QQ Plot") #qq plot for Standardised residuals 
 car::qqPlot(model_g1g2p, main="QQ Plot")
 ```
-```{r}
+```{r  echo=TRUE}
 cat("\n ****** Calculate Collinearity ******\n") 
 vifmodel<-car::vif(model_g1g2p)
 vifmodel
@@ -231,9 +231,6 @@ The data also meets the assumption of non-zero variances of the predictors.
 The results of the regression indicated that the model explained 72.99% of the variance and that the model was a significant predictor of the second period grades, F(2,26) = 533.4, p < 0.001. While the first period grades contributed significantly to the model (B = 0.962, p<0.001), the extra paid classes contributed significantly to the model as well (B = 0.543, p < 0.05). The final predictive model was: second period grades of Math = -0.034 + (0.962*first period grades) + (0.543*extra paid classes)
 
 ```
-
-
-
 
 # Logistic Regression
 ```{r multinomial logistic regression, echo=TRUE}
@@ -404,7 +401,7 @@ corrplot::corrplot(perstdMatrix_AEO, method="circle", type="upper")
 
 corrplot::corrplot(perstdMatrix_AEO, method="number")
 ```
-```{r Visualization for p-value, echo=TRUE}
+``` {r Visualization for p-value, echo=TRUE}
 #About significance level at 0.05, and Non-significant 
 
 res_max_AEO <- corrplot::cor.mtest(perstdMatrix_AEO, conf.level = .95)
@@ -576,7 +573,7 @@ psych::print.psych(pc_rotat, cut = 0.3, sort = TRUE)
 cat("\n\n ****************** Output the communalities **************** \n")
 pc_rotat$communality
 ```
-## Step 6: Dimension reduction and Decide which factores/compenents to retain
+## Step 6: Dimension reduction and Decide which factors/components to retain
 
 ```{r, echo=TRUE}
 #Factor Analysis - the default here is principal axis factoring fm=pa
@@ -613,7 +610,7 @@ facsolrot$communality
 ```
 
 ## Step 8: Reliability Analysis
-```{r,}
+```{r echo=TRUE}
 
 agree_a<-std_AEO[c(cols_A)]
 extra_e <- std_AEO[c(cols_E)]
@@ -631,11 +628,11 @@ open_o <- std_AEO[c(cols_O)]
 
 psych::alpha(agree_a,check.keys=TRUE)
 ```
-```{r}
+```{r echo=TRUE}
 psych::alpha(extra_e, check.keys=TRUE) #for illustrative proposes
 ```
 
-```{r}
+```{r  echo=TRUE}
 psych::alpha(open_o, check.keys=TRUE) #for illustrative proposes
 ```
 

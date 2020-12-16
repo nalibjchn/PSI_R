@@ -731,10 +731,10 @@ colnames(stdPorlagData) &lt;- tolower(colnames(stdPorlagData))
 colnames(stdMergeData) &lt;- tolower(colnames(stdMergeData))</code></pre>
 <div id="analyse" class="section level1">
 <h1>Analyse</h1>
-<div id="difference-for-parameticnon-parametic" class="section level2">
-<h2>Difference for parametic/non-parametic</h2>
-<div id="parametic-test-independent-t-testlevenes-test" class="section level3">
-<h3>Parametic test (independent t-test/levene’s test)</h3>
+<div id="difference-for-parametricnon-parametric" class="section level2">
+<h2>Difference for parametric/non-parametric</h2>
+<div id="parametric-test-independent-t-testlevenes-test" class="section level3">
+<h3>Parametric test (independent t-test/levene’s test)</h3>
 <ol style="list-style-type: decimal">
 <li>absences – by internet</li>
 </ol>
@@ -1026,8 +1026,8 @@ The current health status for students who do not have extra-curricular activiti
 </div>
 <div id="repeat-measure-for-difference" class="section level2">
 <h2>Repeat measure for difference</h2>
-<div id="parametic-test-paired-t-test" class="section level3">
-<h3>Parametic test (paired t-test)</h3>
+<div id="parametric-test-paired-t-test" class="section level3">
+<h3>Parametric test (paired t-test)</h3>
 <p>G1 and G2 and g3 repeat measure</p>
 <pre class="r"><code>pastecs::stat.desc(stdMathData$g1, basic=F)</code></pre>
 <pre><code>##       median         mean      SE.mean CI.mean.0.95          var      std.dev 
@@ -1098,8 +1098,8 @@ effes</code></pre>
 <pre><code>Reporting paried t-test between g2 and g3
 A paired-samples t-test was conducted to evaluate the impact of the Math course grades between second period grade and third period grade. There was statistically significant increase in grade scores from the second period grade (M=10.71, SD=3.76) to the third period grade (M=10.42, SD=4.58), (t(394)=2.99, p=0.003). The mean of increase in grade scores was 0.30 with a 95% confidence interval ranging from 0.10 to 0.50. The eta squared statistic (.022) indicated a small effect size.</code></pre>
 </div>
-<div id="non-parametic-test-math-course" class="section level3">
-<h3>Non-Parametic test — Math course</h3>
+<div id="non-parametric-test-sample-for-math-course" class="section level3">
+<h3>Non-Parametric test — sample for Math course</h3>
 <pre class="r"><code># dalc and walc by sex repeat measure
 # get subset data by sex
 variableint &lt;- c(&quot;sex&quot;, &quot;dalc&quot;, &quot;walc&quot;)
@@ -1127,7 +1127,7 @@ summary(stdMath_F)</code></pre>
 ##                     Mean   :1.733   Mean   :2.663  
 ##                     3rd Qu.:2.000   3rd Qu.:4.000  
 ##                     Max.   :5.000   Max.   :5.000</code></pre>
-<pre class="r"><code># checking if the statistics dalc and walc are non parametic
+<pre class="r"><code># checking if the statistics dalc and walc are non parametric
 # Workday alcohol consumption
 ggplot(stdMath_F, aes(x=dalc)) +
       ggtitle (&quot;Workday alcohol consumption&quot;)+ 
@@ -1205,8 +1205,8 @@ wilcoeffsize2</code></pre>
 <pre><code>Reporting the results for the Mann-Whitney test
 For female students stdMath_F workday alchol consumption (Mdn=1.00, IQR=0.00) were significantly lower than weekend alchol consumption (Mdn=2.00, IQR=2.00), V = 79.50, p &lt; .001. For male students stdMath_M, workday alchol consumption (Mdn=1.00, IQR=1.00) were lower than weekend alchol consumption (Mdn=3, IQR=3), V=72, p &lt; .001.</code></pre>
 </div>
-<div id="non-parametic-test-language-course" class="section level3">
-<h3>Non-Parametic test —language course</h3>
+<div id="non-parametric-test-sample-for-portuguese-language-course" class="section level3">
+<h3>Non-Parametric test — sample for Portuguese language course</h3>
 <pre class="r"><code># dalc and walc by sex repeat measure
 # get subset data by sex
 variableint &lt;- c(&quot;sex&quot;, &quot;dalc&quot;, &quot;walc&quot;)
@@ -1252,7 +1252,7 @@ summary(stdPorlag_F)</code></pre>
 ## var       NA 1.29801390 2.00175911
 ## std.dev   NA 1.13930413 1.41483537
 ## coef.var  NA 0.62744285 0.50995421</code></pre>
-<pre class="r"><code># checking if the statistics dalc and walc are non parametic
+<pre class="r"><code># checking if the statistics dalc and walc are non parametric
 # Workday alcohol consumption
 ggplot(stdPorlag_F, aes(x=dalc)) +
       ggtitle (&quot;Workday alcohol consumption&quot;)+ 
@@ -1457,10 +1457,11 @@ A Chi-Square test for independence (with Yates’ Continuity Correction) indicat
 </code></pre>
 </div>
 </div>
-<div id="difference-for-more-than-two-groups" class="section level3">
-<h3>Difference for more than two groups</h3>
-<div id="parametic" class="section level4">
-<h4>Parametic</h4>
+</div>
+<div id="difference-for-more-than-two-groups" class="section level2">
+<h2>Difference for more than two groups</h2>
+<div id="parametric" class="section level3">
+<h3>Parametric</h3>
 <ol style="list-style-type: decimal">
 <li>studytime weekly study time (numeric: 1 - &lt;2 hours, 2 - 2 to 5 hours, 3 - 5 to 10 hours, or 4 - &gt;10 hours) group for final grade (g1)</li>
 </ol>
@@ -1593,14 +1594,14 @@ aoveta</code></pre>
 An one-way between-groups analysis of variance (ANOVA) was conducted to explore the impact of weekly study time on the first period grades for Portuguese Language course. Participants were divided into four groups according to their weekly study time (Group 1: &lt; 2 hours; Group 2: 2 to 5 hours; Group 3: 5 to 10 hours; Group 4: &gt; 10 hours). There was a statistically significant difference at the p &lt; 0.001 level in first period grades for the four weekly study time groups: (F(3, 645) = 16.24), p&lt;0.001.Despite reaching statistical significance, the actual difference in mean scores between groups was small. A small effect size was also indicated by the eta squared value (0.06). Post-hoc comparisons using the Tukey HSD test indicated that the mean scores for Group 1 (M=10.50, SD=2.57) was significantly difference to that for Group 2 (M=11.54, SD=2.74), Group 3 (M=12.42, SD=2.46), Group 4(M=12.77, SD=2.94); the mean scores for Group 2 was significantly difference to that for other three groups; Group 3 did not differ significantly for Group 4.
 </code></pre>
 </div>
-<div id="no-parametic" class="section level4">
-<h4>No Parametic</h4>
+<div id="no-parametric" class="section level3">
+<h3>No Parametric</h3>
 <ol style="list-style-type: decimal">
 <li>Kruskal-Wallis (Non-Parametric)</li>
 <li>Friedmans ANOVA (non-parametric) for repeated measures</li>
 </ol>
-<div id="kruska-wallis-test" class="section level5">
-<h5>Kruska-wallis test</h5>
+<div id="kruska-wallis-test" class="section level4">
+<h4>Kruska-wallis test</h4>
 <p>Nominal — Guardian (student’s guardian (mother, father or other)) Ordinal — health (current health status (from 1 - very bad to 5 - very good)) group by guardian (3 groups)</p>
 <pre class="r"><code>psych::describeBy(as.numeric(stdPorlagData$health), factor(stdPorlagData$guardian),mat=TRUE)</code></pre>
 <pre><code>##     item group1 vars   n     mean       sd median  trimmed    mad min max range
@@ -1648,8 +1649,8 @@ rstatix::kruskal_effsize(stdPorlagData, health~guardian, ci = FALSE, conf.level 
 ## 1 health   649 -0.00274 eta2[H] small</code></pre>
 <pre><code>An Kruskal-Wallis rank sum was conducted to to explore the impact of guardian on levels of students health. Participants were divided into three groups according to their guardian (Group 1: Father; Group 2: Mother; Group 3: other). No statistically significant difference in the scores for the levels of health (Mdn=4.00, M=3.50, SD=1.42 for Group 1, Mdn= 4.00, M=3.54, SD=1.46 for Group 2, Mdn=4, M=3.59, SD=1.41 for Group 3) (H = 0.233, p=0.89). A very small effect size was also indicated by the kruskal value (-0.027e-102).</code></pre>
 </div>
-<div id="friedmans-anova-parametric-for-repeated-measures" class="section level5">
-<h5>Friedmans ANOVA (parametric) for repeated measures</h5>
+<div id="friedmans-anova-parametric-for-repeated-measures" class="section level4">
+<h4>Friedmans ANOVA (parametric) for repeated measures</h4>
 <p>G1 G2 G3 for each students ranks</p>
 <pre class="r"><code>Responses &lt;- na.omit(with(stdPorlagData, cbind(g1, g2, g3)))
 cat(&quot;\nMedians:\n&quot;) </code></pre>
@@ -1668,7 +1669,6 @@ print(apply(Responses, 2, median)) </code></pre>
 <pre><code>Report Firedman test
 
 The three grades of participants for Portuguese Language course has strong significantly change over the three periods grades, χ2(2) = 6.75, p &lt; 0.001.</code></pre>
-</div>
 </div>
 </div>
 </div>

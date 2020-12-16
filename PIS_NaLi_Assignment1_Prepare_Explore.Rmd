@@ -148,7 +148,7 @@ summary(stdPorlagData$romantic)
 ```
 ## Quantitative Data
 Looking at interest quantitativ data of variables in two samples: traveltime, studytime, G1 - G3 (grade 1 to grade 3),
-### Measure of Central Tendency:mean, median, mode, 
+### Measure of Central Tendency:mean, median, mode
 ```{r descripting sample: mean, echo=TRUE}
 #traveltime: math course
 mean(stdMathData$traveltime)
@@ -296,7 +296,7 @@ quantile(as.double(stdPorlagData$g3))
 IQR(as.double(stdPorlagData$g3))
 var(as.double(stdPorlagData$g3))
 ```
-### Visuallsing Quantitative Data
+### Visualising Quantitative Data
 ```{r plot G3, echo=TRUE}
 
 gg_g3 <- ggplot(stdMathData, aes(x=stdMathData$g3))
@@ -508,6 +508,8 @@ head(res_portuggese[rev(order(res_portuggese[,2])),])
 The results show that the variables of interests, no missing data.
  
 
+
+
 # Explore Data
 ## descriptive statistics
 ```{r Generate Summary Statistics, echo=TRUE}
@@ -522,7 +524,6 @@ summary(subdata_por)
 pastecs::stat.desc(stdMathData[variableint], basic=F)
 pastecs::stat.desc(stdPorlagData[variableint], basic=F)
 ```
-
 
 ## Assessing a variable for Normality
 Step 1: Assessing by plots
