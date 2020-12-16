@@ -51,7 +51,7 @@ stdMathData=read.table("student-mat.csv",sep=";",header=TRUE) #read student
 stdPorlagData=read.table("student-por.csv",sep=";",header=TRUE)
 
 
-stdMergeData=merge(d1,d2,by=c("school","sex","age","address","famsize","Pstatus","Medu","Fedu","Mjob","Fjob","reason","nursery","internet"))
+stdMergeData=merge(stdMathData,stdPorlagData,by=c("school","sex","age","address","famsize","Pstatus","Medu","Fedu","Mjob","Fjob","reason","nursery","internet"))
 
 colnames(stdMathData) <- tolower(colnames(stdMathData))
 colnames(stdPorlagData) <- tolower(colnames(stdPorlagData))
@@ -62,7 +62,7 @@ colnames(stdMergeData) <- tolower(colnames(stdMergeData))
 ## Difference for parametic/non-parametic
 ### Parametic test (independent t-test/levene's test)
 1. absences -- by internet 
-```{r 1. absences by internet }
+```{r echo=TRUE}
 # the variable: the number of absences has generated histogram and summary statistics in th "Explore Data"
 # describle the number of absences by internet group
 # internet: Internet access at home (binary: yes or no)
@@ -72,7 +72,7 @@ colnames(stdMergeData) <- tolower(colnames(stdMergeData))
 psych::describeBy(stdMathData$absences, stdMathData$internet, mat=TRUE)
 
 ```
-``` {r levenTest and t-test}
+``` {r echo=TRUE }
 # Levene's test for homogenity of variable 
 car::leveneTest(absences ~ internet, data=stdMathData)
 
@@ -81,7 +81,7 @@ car::leveneTest(absences ~ internet, data=stdMathData)
 res <- stats::t.test(absences ~ internet, var.equal=TRUE, data=stdMathData)
 res
 ```
-```{r effect size check: Cohend and Eta}
+```{r effect size check: Cohend and Eta,echo=TRUE}
 # statistically significant difference was found
 #Cohen's d
 # Reporting guideline: Cohen’s d
@@ -93,7 +93,7 @@ effsize = round((2 * res$statistic)/sqrt(res$parameter), 2)
 effectsize::t_to_d(t=res$statistic, res$parameter)
 ```
 
-```{r effect size check: Eta}
+```{r echo=TRUE}
 # statistically significant difference was found
 # Eta
 # reporting guideline: on effect size: 0.01 = small, 0.06 = moderate, 0.14 =large
@@ -112,7 +112,7 @@ An independent-samples t-test was conducted to compare the number of absences of
 ```
 
 2. g3 --- by paid (extra paid classes within the course subject(math) (yes/no)
-```{r 2. g3 by paid}
+```{r echo=TRUE}
 # g3 should be generaged histogram and summary statistics 
 ggplot(stdMathData, aes(x=g3))+ 
        labs(x="Final grade for Math course (g3)") + 
@@ -122,7 +122,7 @@ ggplot(stdMathData, aes(x=g3))+
 qqnorm(stdMathData$g3)
 qqline(stdMathData$g3, col=2)
 ```
-```{r g3 normality}
+```{r g3 normality, echo=TRUE}
 #g3 generae summary statistics
 pastecs::stat.desc(stdMathData$g3, basic=F)
 
@@ -141,12 +141,12 @@ FSA::perc(as.numeric(mathg3), 1.96, "gt")
 FSA::perc(as.numeric(mathg3), 3.29, "gt")
 ```
 
-```{r 2. g3 by paid}
+```{r echo=TRUE}
 # get descriptive statistics by paid group
 psych::describeBy(stdMathData$g3, stdMathData$paid, mat=TRUE)
 ```
 
-``` {r levenTest and t-test}
+``` {r echo=TRUE}
 # Levene's test for homogenity of variable 
 car::leveneTest(g3 ~ paid, data=stdMathData)
 
@@ -156,7 +156,7 @@ res_g3 <- stats::t.test(g3 ~ paid, var.equal=TRUE, data=stdMathData)
 res_g3
 ```
 
-```{r effect size check: Cohen's d and Eta}
+```{r effect size check: Cohens d and Eta,echo=TRUE}
 # statistically significant difference was found
 #Cohen's d
 # Reporting guideline: Cohen’s d
@@ -168,7 +168,7 @@ effsize = round((2 * res_g3$statistic)/sqrt(res_g3$parameter), 2)
 effectsize::t_to_d(t=res_g3$statistic, res_g3$parameter)
 ```
 
-```{r effect size check: Eta}
+```{r effect size check: Eta ,echo=TRUE}
 # statistically significant difference was found
 # Eta
 # reporting guideline: on effect size: 0.01 = small, 0.06 = moderate, 0.14 =large
@@ -187,13 +187,13 @@ An independent-samples t-test was conducted to compare the final grade (g3) for 
 
 ### Non-Parametric test (Mann-Whitney test)
 1. Weekly study time (numeric: 1 - <2 hours, 2 - 2 to 5 hours, 3 - 5 to 10 hours, or 4 - >10 hours)
-```{r discriptive statistics}
+```{r echo=TRUE}
 # get descriptive statistics by sex group
 by(stdMathData$studytime, stdMathData$sex, median)
 by(stdMathData$studytime, stdMathData$sex, IQR)
 ```
 
-```{r plot histogram}
+```{r echo=TRUE}
 
 #split dataset by sex
 stdMath_F <- subset(stdMathData, sex="F")
@@ -213,13 +213,14 @@ ggplot(stdMath_M, aes(x=studytime)) +
       scale_fill_gradient("Count", low="#DCDCDC", high="#7C7C7C") +
       stat_function(fun=dnorm, color="red",args=list(mean=mean(stdMath_M$studytime,                                                       na.rm=TRUE),sd=sd(stdMath_M$studytime, na.rm=TRUE)))
 ```
-```{r Mann Whitney U (Wilcoxon Test)}
+```{r Mann Whitney U (Wilcoxon Test), echo=TRUE}
 #test for differences on Gender to get U statistic 
 stats::wilcox.test(studytime ~ sex, data = stdMathData)
 # calculate z-score
 coin::wilcox_test(studytime~as.factor(sex), data=stdMathData)
 ```
-```{r effect size}
+```{r echo=TRUE}
+#effect size
 wilcoeffsize = rstatix::wilcox_effsize(studytime ~ sex, data=stdMathData)
 wilcoeffsize
 ```
@@ -230,13 +231,13 @@ The weekly study time by female stdMath_F (Mdn=2.00, IQR=1.00) was significantly
 ```
 
 2. Current health status ((numeric: from 1 - very bad to 5 - very good)) by extra-curricular activities (yes/no)
-```{r discriptive statistics}
+```{r echo=TRUE}
 # get descriptive statistics by extra-curricular activities
 by(stdMathData$health, stdMathData$activities, median)
 by(stdMathData$health, stdMathData$activities, IQR)
 ```
 
-```{r plot histogram}
+```{r echo=TRUE}
 
 #split dataset by activities
 stdMathHealAct_N <- subset(stdMathData, activities="no")
@@ -256,14 +257,15 @@ ggplot(stdMathHealAct_N, aes(x=health)) +
       scale_fill_gradient("Count", low="#DCDCDC", high="#7C7C7C") +
       stat_function(fun=dnorm, color="red",args=list(mean=mean(stdMathHealAct_N$health,                                                       na.rm=TRUE),sd=sd(stdMathHealAct_N$health, na.rm=TRUE)))
 ```
-```{r Mann Whitney U (Wilcoxon Test)}
-#test for differences on Gender to get U statistic 
+```{r echo=TRUE}
+#test for differences on Gender to get U statistic: Mann Whitney U (Wilcoxon Test)
 stats::wilcox.test(health ~ activities, data = stdMathData)
 # calculate z-score
 coin::wilcox_test(health~as.factor(activities), data=stdMathData)
 ```
 
-```{r effect size}
+```{r echo=TRUE}
+#effect size
 wilcoeffsize = rstatix::wilcox_effsize(health ~ activities, data=stdMathData)
 wilcoeffsize
 ```
@@ -277,7 +279,7 @@ The current health status for students who do not have extra-curricular activiti
 ## Repeat measure for difference
 ### Parametic test (paired t-test)
 G1 and G2 and g3 repeat measure 
-```{r g1 and g2 repeat measure}
+```{r g1 and g2 repeat measure, echo=TRUE}
 
 pastecs::stat.desc(stdMathData$g1, basic=F)
 pastecs::stat.desc(stdMathData$g2, basic=F)
@@ -287,7 +289,7 @@ res_g12 <- t.test(stdMathData$g1, stdMathData$g2, paired=TRUE)
 res_g12
 ```
 
-```{r effect size check: Eta}
+```{r effect size check: Eta,echo=TRUE}
 # statistically significant difference was found
 # Eta
 # reporting guideline: on effect size: .01 = small, .06 = moderate, .14 =large
@@ -301,7 +303,7 @@ Reporting paired t-test between g1 and g2
 A paried-samples t-test was conducted to evaluate the impact of the Math course grades between first period grade and second period grade. There was no statistically significant increase in grade scores from the first period grade (M=10.91, SD=3.32) to the second period grade (M=10.71, SD=3.76), (t(394)=1.96, p=0.05). The mean of increase in grade scores was 0.20 with a 95% confidence interval ranging from -0.12e-3 to 0.39. The eta squared statistic (.01) indicated a small effect size.
 ```
 
-```{r g2 and g3 repeat measure}
+```{r g2 and g3 repeat measure,echo=TRUE}
 pastecs::stat.desc(stdMathData$g2, basic=F)
 pastecs::stat.desc(stdMathData$g3, basic=F)
 
@@ -310,7 +312,7 @@ res_g23 <- t.test(stdMathData$g2, stdMathData$g3, paired=TRUE)
 res_g23
 ```
 
-```{r effect size check: Eta}
+```{r echo=TRUE}
 # statistically significant difference was found
 # Eta
 # reporting guideline: on effect size: .01 = small, .06 = moderate, .14 =large
@@ -325,7 +327,8 @@ A paired-samples t-test was conducted to evaluate the impact of the Math course 
 ```
 
 ### Non-Parametic test --- Math course
-```{r dalc and walc by sex repeat measure}
+```{r echo=TRUE}
+# dalc and walc by sex repeat measure
 # get subset data by sex
 variableint <- c("sex", "dalc", "walc")
 stdMath_F <- subset(stdMathData, sex=="F")[variableint]
@@ -342,7 +345,7 @@ summary(stdMath_M)
 
 ```
 
-```{r dalc, walc}
+```{r dalc, walc,echo=TRUE}
 # checking if the statistics dalc and walc are non parametic
 # Workday alcohol consumption
 ggplot(stdMath_F, aes(x=dalc)) +
@@ -374,17 +377,19 @@ ggplot(stdMath_M, aes(x=walc)) +
       scale_fill_gradient("Count", low="#DCDCDC", high="#7C7C7C") +
       stat_function(fun=dnorm, color="red",args=list(mean=mean(stdMath_M$walc,                                                       na.rm=TRUE),sd=sd(stdMath_M$walc, na.rm=TRUE)))
 ```
-```{r wilcoxon test syntax}
+```{r echo=TRUE}
+# wilcoxon test syntax
 # fmale group: Workday alcohol consumption and weekend alcohol consumption 
 stats::wilcox.test(stdMath_F$dalc, stdMath_F$walc, paired=TRUE)
 ```
 
-```{r wilcoxon test syntax}
+```{r echo=TRUE}
+# wilcoxon test syntax
 # male group: Workday alcohol consumption and weekend alcohol consumption 
 stats::wilcox.test(stdMath_M$dalc, stdMath_M$walc, paired=TRUE)
 ```
 
-```{r wilcoxon test syntax}
+```{r echo=TRUE}
 coin::wilcox_test(dalc~as.factor(sex), data=stdMathData)
 coin::wilcox_test(walc~as.factor(sex), data=stdMathData)
 
@@ -402,7 +407,8 @@ For female students stdMath_F workday alchol consumption (Mdn=1.00, IQR=0.00) we
 ```
 
 ### Non-Parametic test ---language course
-```{r dalc and walc by sex repeat measure}
+```{r echo=TRUE}
+# dalc and walc by sex repeat measure
 # get subset data by sex
 variableint <- c("sex", "dalc", "walc")
 stdPorlag_F <- subset(stdPorlagData, sex=="F")[variableint]
@@ -420,7 +426,7 @@ pastecs::stat.desc(stdPorlag_M, basic=F)
 
 ```
 
-```{r dalc, walc}
+```{r echo=TRUE}
 # checking if the statistics dalc and walc are non parametic
 # Workday alcohol consumption
 ggplot(stdPorlag_F, aes(x=dalc)) +
@@ -452,21 +458,22 @@ ggplot(stdPorlag_M, aes(x=walc)) +
       scale_fill_gradient("Count", low="#DCDCDC", high="#7C7C7C") +
       stat_function(fun=dnorm, color="red",args=list(mean=mean(stdMath_M$walc,                                                       na.rm=TRUE),sd=sd(stdMath_M$walc, na.rm=TRUE)))
 ```
-```{r wilcoxon test syntax}
+```{r echo=TRUE}
+# wilcoxon test syntax
 # fmale group: Workday alcohol consumption and weekend alcohol consumption 
 stats::wilcox.test(stdPorlag_F$dalc, stdPorlag_F$walc, paired=TRUE)
 ```
 
-```{r wilcoxon test syntax}
+```{r echo=TRUE}
 # male group: Workday alcohol consumption and weekend alcohol consumption 
 stats::wilcox.test(stdPorlag_M$dalc, stdPorlag_M$walc, paired=TRUE)
 ```
 
-```{r}
+```{r echo=TRUE}
 stats::wilcox.test(stdPorlagData$dalc, stdPorlagData$walc, paired=TRUE)
 ```
 
-```{r wilcoxon test syntax}
+```{r echo=TRUE}
 coin::wilcox_test(dalc~as.factor(sex), data=stdPorlagData)
 coin::wilcox_test(walc~as.factor(sex), data=stdPorlagData)
 
@@ -495,7 +502,7 @@ HA: There is a difference
 #CrossTable(predictor, outcome, fisher = TRUE, chisq = TRUE, expected = TRUE)
 gmodels::CrossTable(stdMathData$sex, stdMathData$schoolsup, fisher = TRUE, chisq = TRUE, expected = TRUE, sresid = TRUE, format = "SPSS")
 ```
-```{r}
+```{r echo=TRUE}
 # simplistic way of doing Chi-Square
 
 #Create your contingency table
@@ -513,7 +520,7 @@ ctest$observed#observed frequencies
 cat("\n *****p-value:Pearson's Chi-squared test with Yates' continuity correction *****\n") 
 ctest$p.value
 ```
-```{r effect size}
+```{r echo=TRUE}
 #Calculate effect size
 sjstats::phi(contintable)
 sjstats::cramer(contintable)
@@ -528,7 +535,7 @@ A Chi-Square test for independence (with Yates’ Continuity Correction) indicat
 ### Difference for more than two groups 
 #### Parametic
 1. studytime weekly study time (numeric: 1 - <2 hours, 2 - 2 to 5 hours, 3 - 5 to 10 hours, or 4 - >10 hours) group for final grade (g1)
-```{r normality, echo=TRUE}
+```{r echo=TRUE}
 # g3 Examine/Asses Normality
 
 gg_g1 <- ggplot(stdPorlagData, aes(x=g1)) +
@@ -579,7 +586,8 @@ The first period grades of Portuguess Language course was assess for normality. 
 
 2. Differences more than 2 groups (ANOVA)
 Describle first peroid grades by group (studytime: group1, group 2, group 3, and group 4)
-```{r descriptive statistics by group, echo=TRUE}
+```{r echo=TRUE}
+#descriptive statistics by group
 psych::describeBy(stdPorlagData$g1, stdPorlagData$studytime, mat=TRUE)
 ```
 ```{r homogeneity check, echo=TRUE}
@@ -590,7 +598,7 @@ stats::bartlett.test(g1 ~ studytime, data=stdPorlagData)
 #p-value is > 0.05 so the result is not statistically significant so we can assume homogeneity
 userfriendlyscience::oneway(as.factor(stdPorlagData$studytime), y=stdPorlagData$g1, posthoc="Tukey")
 ```
-```{r effect size and reporting}
+```{r effect size and reporting, echo=TRUE}
 # for reporting
 res2<-stats::aov(g3 ~ studytime, data = stdPorlagData)
 res2
@@ -624,20 +632,21 @@ An one-way between-groups analysis of variance (ANOVA) was conducted to explore 
 Nominal --- Guardian (student's guardian (mother, father or other))
 Ordinal --- health (current health status (from 1 - very bad to 5 - very good))
 group by guardian (3 groups)
-```{r statistic descriptive}
+```{r echo=TRUE}
 psych::describeBy(as.numeric(stdPorlagData$health), factor(stdPorlagData$guardian),mat=TRUE)
 
 ```
-``` {r kruskal - Wallis rank sum test}
+``` {r echo=TRUE}
 #run a kruskal wallis test
 stats::kruskal.test(health~guardian,data=stdPorlagData)
 ```
-```{r post-hot test for between groups}
+```{r echo=TRUE}
+#post-hot test for between groups
 tmp_bonferroni<-FSA::dunnTest(x=as.numeric(stdPorlagData$health), g=factor(stdPorlagData$guardian), method="bonferroni") 
 print(tmp_bonferroni, dunn.test.results = TRUE)
 ```
-```{r effect size}
-# bootstrapping
+```{r echo=TRUE}
+# bootstrapping effect size
 rstatix::kruskal_effsize(stdPorlagData, health~guardian, ci = FALSE, conf.level = 0.95, ci.type = "perc", nboot = 1000)
 ```
 ```
@@ -648,13 +657,13 @@ An Kruskal-Wallis rank sum was conducted to to explore the impact of guardian on
 ##### Friedmans ANOVA (parametric) for repeated measures
 G1 G2 G3 for each students ranks
 
-```{r }
+```{r echo=TRUE}
 Responses <- na.omit(with(stdPorlagData, cbind(g1, g2, g3)))
 cat("\nMedians:\n") 
 #print out the medians of each of our variables
 print(apply(Responses, 2, median)) 
 ```
-``` {r friedman test}
+``` {r friedman test,echo=TRUE}
 stats::friedman.test(Responses)
 ```
 ```
