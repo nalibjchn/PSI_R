@@ -1,0 +1,781 @@
+---
+title: "PSI_Assignment 1: Digital Portfolio: Prepare and Explore Parts"
+author: Na Li (D19125334)
+output: html_document
+---
+
+```{r setup}
+knitr::opts_chunk$set(echo = TRUE)
+
+needed_packages <- c("VIM", "tidyverse","pastecs", "ggplot2", "semTools", "psych", "FSA", "car", "effectsize", "coin", "rstatix", "sjstats", "userfriendlyscience", "stats", "foreign", "gmodels")   
+# Extract not installed packages
+not_installed <- needed_packages[!(needed_packages %in% installed.packages()[, "Package"])]    
+# Install not installed packages
+if(length(not_installed)) install.packages(not_installed) 
+
+library(pastecs) #For creating descriptive statistic summaries
+library(ggplot2) #For creating histograms with more detail than plot
+library(semTools) #For skewness and kurtosis
+library(psych)  #For descriptive functions
+library(FSA) #For percentage
+library(car) # For Levene's test for homogeneity of variance 
+library(effectsize) #To calculate effect size for t-test
+library(VIM)
+library(tidyverse)
+library(coin) # For Wilcox test (non-parametric)
+library(rstatix) # For calculating effect size
+library(sjstats) #calculate effect size for t-test
+library(userfriendlyscience)
+library(stats)
+library(foreign) # open SPSS file, I may not use that.
+library(gmodels) #For creating histograms with more detail than plot
+```
+
+# Understanding Dataset
+
+This dataset is Secondary School student Performance in secondary education of two Portuguese schools, in this secion, 
+1. Merged data set from two csv files (student-mat.csv (Math course) and student-por.csv (Portuguese language course) datasets), account the number of data set as a sample data. 
+2. Visualising Quantitative Data
+3. Visualising Qualitative Data
+
+
+```{r initial dataset, echo=TRUE}
+
+getwd()
+
+stdMathData=read.table("student-mat.csv",sep=";",header=TRUE) #read student 
+stdPorlagData=read.table("student-por.csv",sep=";",header=TRUE)
+
+stdMergeData=merge(stdMathData,stdPorlagData,by=c("school","sex","age","address","famsize","Pstatus","Medu","Fedu","Mjob","Fjob","reason","nursery","internet"))
+
+#total number of the dataset
+print(nrow(stdMergeData)) # 382 records/rows/cases
+#number of students math course -> 395 records
+nrow(stdMathData)
+#number of students for Portuguese language course -> 649 records
+nrow(stdPorlagData)
+
+colnames(stdMathData) <- tolower(colnames(stdMathData))
+colnames(stdPorlagData) <- tolower(colnames(stdPorlagData))
+colnames(stdMergeData) <- tolower(colnames(stdMergeData))
+
+write.csv(x=stdMergeData, file="student_merged.csv")
+
+#show variables in three datasets
+colnames(stdMathData)
+colnames(stdPorlagData)
+colnames(stdMergeData)
+
+```
+## Qualitative Data
+```{r, echo=TRUE}
+# Looking at interest variables in two Samples: sex, mother jobs, father job, reason
+# Qualitative data 
+
+stdMathData$sex <- as.factor(stdMathData$sex)
+stdPorlagData$sex <- as.factor(stdPorlagData$sex)
+stdMergeData$sex <- as.factor(stdMergeData$sex)
+
+summary(stdMathData$sex)
+summary(stdPorlagData$sex)
+summary(stdMergeData$sex)
+
+```
+
+```{r, echo=TRUE}
+# Looking at interest variables in two Samples: sex, mother jobs, father job, reason
+# Qualitative data 
+
+stdMathData$mjob <- as.factor(stdMathData$mjob)
+stdPorlagData$mjob <- as.factor(stdPorlagData$mjob)
+
+summary(stdMathData$mjob)
+summary(stdPorlagData$mjob)
+```
+```{r descripting fjob, echo=TRUE}
+# Looking at interest variables in two Samples: sex, mother jobs, father job, reason
+# Qualitative dataset 
+stdMathData$fjob <- as.factor(stdMathData$fjob)
+stdPorlagData$fjob <- as.factor(stdPorlagData$fjob)
+
+summary(stdMathData$fjob)
+summary(stdPorlagData$fjob)
+```
+```{r descripting address, echo=TRUE}
+# Looking at interest variables in two Samples: address
+# Qualitative data 
+stdMathData$address <- as.factor(stdMathData$address)
+stdPorlagData$address <- as.factor(stdPorlagData$address)
+# Student data for Math course: reason to choose this school 
+summary(stdMathData$address)
+```
+``` {r descripting address-summary, echo=TRUE}
+# Student data for Portuguese language course: reason to choose this school 
+summary(stdPorlagData$address)
+```
+``` {r descripting famsup, echo=TRUE}
+# Looking at interest variables in two Samples: family educational support 
+# Qualitative data 
+stdMathData$famsup <- as.factor(stdMathData$famsup)
+stdPorlagData$famsup <- as.factor(stdPorlagData$famsup)
+# Math course
+str(stdMathData$famsup)
+summary(stdMathData$famsup)
+```
+``` {r descripting summary famsup, echo=TRUE}
+# Looking at interest variables in two Samples: family educational support 
+# Qualitative data 
+# Portuguese language course
+str(stdPorlagData$famsup)
+summary(stdPorlagData$famsup)
+```
+``` {r descripting romantic, echo=TRUE}
+# Looking at interest variables in two Samples: with a romantic relationship 
+# Qualitative data 
+stdMathData$romantic <- as.factor(stdMathData$romantic)
+stdPorlagData$romantic <- as.factor(stdPorlagData$romantic)
+# Math course
+str(stdMathData$romantic)
+summary(stdMathData$romantic)
+```
+
+``` {r descripting romantic for Portuguese, echo=TRUE}
+# Looking at interest variables in two Samples: with a romantic relationship 
+# Qualitative data 
+# Portuguese language course
+str(stdPorlagData$romantic)
+summary(stdPorlagData$romantic)
+```
+## Quantitative Data
+Looking at interest quantitativ data of variables in two samples: traveltime, studytime, G1 - G3 (grade 1 to grade 3),
+### Measure of Central Tendency:mean, median, mode, 
+```{r descripting sample: mean, echo=TRUE}
+#traveltime: math course
+mean(stdMathData$traveltime)
+#traeltime: portuguese language course
+mean(stdPorlagData$traveltime) 
+```
+```{r descripting sample: median, echo=TRUE}
+#traveltime: math course
+median(stdMathData$traveltime)
+#traeltime: portuguese language course
+median(stdPorlagData$traveltime) 
+```
+
+```{r get mode function, echo=TRUE}
+#traveltime: math course
+getmode <- function(v) {
+   uniqv <- unique(v)
+   uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
+getmode(stdMathData$traveltime)
+#traeltime: portuguese language course
+getmode(stdPorlagData$traveltime) 
+``` 
+
+```{r descripting sample: traveltime, echo=TRUE}
+#traveltime: math course
+summary(stdMathData$traveltime)
+#traeltime: portuguese language course
+summary(stdPorlagData$traveltime)
+``` 
+```{r descripting sample: studytime, echo=TRUE}
+#studytime: math course
+summary(stdMathData$studytime)
+#studytime: portuguese language course
+summary(stdPorlagData$studytime)
+``` 
+```{r descripting studytime: mode, echo=TRUE}
+#studytime: math course
+getmode(stdMathData$studytime)
+#studytime: portuguese language course
+getmode(stdPorlagData$studytime) 
+```
+
+```{r descripting g1, echo=TRUE}
+#studytime: math course
+summary(stdMathData$g1)
+#studytime: portuguese language course
+summary(stdPorlagData$g1)
+``` 
+
+```{r descripting g1: mode, echo=TRUE}
+#G1: math course
+getmode(stdMathData$g1)
+#G1: portuguese language course
+getmode(stdPorlagData$g1) 
+```
+
+```{r descripting g2, echo=TRUE}
+#studytime: math course
+summary(stdMathData$g2)
+#studytime: portuguese language course
+summary(stdPorlagData$g2)
+``` 
+
+```{r descripting g2: mode, echo=TRUE}
+#G2: math course
+getmode(stdMathData$g2)
+#G2: portuguese language course
+getmode(stdPorlagData$g2) 
+```
+
+```{r descripting g3, echo=TRUE}
+#studytime: math course
+summary(stdMathData$g3)
+#studytime: portuguese language course
+summary(stdPorlagData$g3)
+``` 
+
+```{r descripting g3: mode, echo=TRUE}
+#G3: math course
+getmode(stdMathData$g3)
+#G3: portuguese language course
+getmode(stdPorlagData$g3) 
+```
+### Measure of Dispersion (descriptive statistics): range, quantiles, standard deviation (sd), IQR
+```{r descripting g1g2g3: SD, echo=TRUE}
+#G1: math course
+round(sd(as.double(stdMathData$g1)),2)
+#G1: portuguese language course
+round(sd(as.double(stdPorlagData$g1)),2)
+```
+```{r descripting g2: SD, echo=TRUE}
+#G2: math course
+round(sd(as.double(stdMathData$g2)),2)
+#G2: portuguese language course
+round(sd(as.double(stdPorlagData$g2)),2)
+```
+```{r descripting g3: SD, echo=TRUE}
+#G3: math course
+sdMathData_g3 <- sd(as.double(stdMathData$g3))
+round(sdMathData_g3, 2)
+#G3: portuguese language course
+sdPorlagData_g3 <- sd(as.double(stdPorlagData$g3))
+round(sdPorlagData_g3,2)
+
+```
+
+```{r descripting g1: range, quantile and Interquartile Range, echo=TRUE}
+#math course
+range(as.double(stdMathData$g1))
+quantile(as.double(stdMathData$g1))
+IQR(as.double(stdMathData$g1))
+var(as.double(stdMathData$g1))
+ 
+#portuguese language course
+range(as.double(stdPorlagData$g1))
+quantile(as.double(stdPorlagData$g1))
+IQR(as.double(stdPorlagData$g1))
+var(as.double(stdPorlagData$g1))
+```
+```{r descripting g2: range, quantile and Interquartile Range, echo=TRUE}
+#math course
+range(as.double(stdMathData$g2))
+quantile(as.double(stdMathData$g2))
+IQR(as.double(stdMathData$g2))
+var(as.double(stdMathData$g2))
+ 
+#portuguese language course
+range(as.double(stdPorlagData$g2))
+quantile(as.double(stdPorlagData$g2))
+IQR(as.double(stdPorlagData$g2))
+var(as.double(stdPorlagData$g2))
+```
+```{r descripting g3: range, quantile and Interquartile Range, echo=TRUE}
+#math course
+range(as.double(stdMathData$g3))
+quantile(as.double(stdMathData$g3))
+IQR(as.double(stdMathData$g3))
+var(as.double(stdMathData$g3))
+ 
+#Portuguese language course
+range(as.double(stdPorlagData$g3))
+quantile(as.double(stdPorlagData$g3))
+IQR(as.double(stdPorlagData$g3))
+var(as.double(stdPorlagData$g3))
+```
+### Visuallsing Quantitative Data
+```{r plot G3, echo=TRUE}
+
+gg_g3 <- ggplot(stdMathData, aes(x=stdMathData$g3))
+gg_g3 <- gg_g3 + labs(x="G3")
+gg_g3 <- gg_g3 + geom_histogram(bins = 30,aes(y=..density.., color=sex, fill=..count..)) 
+   #geom_histogram(binwidth=2, colour="black", aes(y=..density.., fill=..count..))
+       
+  
+#gg_g3 <- gg_g3 + scale_fill_gradient("Count", low="#DCDCDC", high="#7C7C7C")
+
+gg_g3 <- gg_g3 + stat_function(fun=dnorm, color='red',args=list(mean=mean(stdMathData$g3, na.rm=TRUE), sd=sd(stdMathData$g3, na.rm=TRUE)))
+
+gg_g3
+
+```
+
+```{r plot absences-Math, echo=TRUE}
+
+ggplot(stdMathData, aes(x=stdMathData$absences)) + 
+         labs(x="math: absences") +
+         geom_histogram(bins = 30,aes(y=..density.., fill=..count..)) +
+         stat_function(fun=dnorm, color='red',args=list(mean=mean(stdMathData$absences, na.rm=TRUE), sd=sd(stdMathData$absences, na.rm=TRUE)))
+
+```
+```{r plot absences-Portuguese, echo=TRUE}
+
+gg_st <- ggplot(stdPorlagData, aes(x=stdPorlagData$absences))
+gg_st <- gg_st + labs(x="Portuguese language: absences")
+gg_st <- gg_st + geom_histogram(bins = 30,aes(y=..density.., fill=..count..)) 
+gg_st <- gg_st + stat_function(fun=dnorm, color='red',args=list(mean=mean(stdPorlagData$absences, na.rm=TRUE), sd=sd(stdPorlagData$absences, na.rm=TRUE)))
+
+gg_st
+
+```
+
+```{r plot studytime , echo=TRUE}
+#pie chart
+mytable <- table(stdMathData$studytime)
+lbls <- paste(names(mytable), "\n", mytable, sep="")
+pie(mytable, labels = lbls,
+   main="Math: Weekly Study time \n 1 - <2 hours, 2 - 2 to 5 hours, 3 - 5 to 10 hours, or 4 - >10 hours")
+
+# Pie Chart from data frame with Appended Sample Sizes
+mytable_por <- table(stdPorlagData$studytime)
+lbls <- paste(names(mytable_por), "\n", mytable_por, sep="")
+pie(mytable, labels = lbls,
+   main="Prtuguese language: Weekly Study time \n 1 - <2 hours, 2 - 2 to 5 hours, 3 - 5 to 10 hours, or 4 - >10 hours")
+```
+
+```{r plot g1g2g3 math , echo=TRUE}
+gg_math <- ggplot(stdMathData, aes(x=stdMathData$g1))
+gg_math <- gg_math + labs(x="Math:G1-Red, G2-Blue, G3-Green", y="Frequency")
+gg_math <- gg_math + stat_function(fun=dnorm, color='red',args=list(mean=mean(stdMathData$g1, na.rm=TRUE), sd=sd(stdMathData$g1, na.rm=TRUE)))
+
+gg_math <- gg_math + stat_function(fun=dnorm, color='blue',args=list(mean=mean(stdMathData$g2, na.rm=TRUE), sd=sd(stdMathData$g2, na.rm=TRUE)))
+
+
+gg_math <- gg_math + stat_function(fun=dnorm, color='green',args=list(mean=mean(stdMathData$g3, na.rm=TRUE), sd=sd(stdMathData$g3, na.rm=TRUE)))
+
+gg_math
+
+```
+```{r , echo=TRUE}
+gg_porlag <- ggplot(stdPorlagData, aes(x=stdPorlagData$g1))
+gg_porlag <- gg_porlag + labs(x="Portuguese language:G1-Red, G2-Blue, G3-Green", y="Frequency")
+gg_porlag <- gg_porlag + stat_function(fun=dnorm, color='red',args=list(mean=mean(stdPorlagData$g1, na.rm=TRUE), sd=sd(stdPorlagData$g1, na.rm=TRUE)))
+
+gg_porlag <- gg_porlag + stat_function(fun=dnorm, color='blue',args=list(mean=mean(stdPorlagData$g2, na.rm=TRUE), sd=sd(stdPorlagData$g2, na.rm=TRUE)))
+
+
+gg_porlag <- gg_porlag + stat_function(fun=dnorm, color='green',args=list(mean=mean(stdPorlagData$g3, na.rm=TRUE), sd=sd(stdPorlagData$g3, na.rm=TRUE)))
+
+gg_porlag
+
+```
+
+```{r plot G1 by sex group,echo=TRUE}
+
+female <- filter(stdMathData, sex == "F")
+male <- filter(stdMathData, sex=="M")
+
+gg_g1 <- ggplot(stdMathData, aes(x=g1, fill=sex, colour=sex)) + geom_density(alpha = 0.1)
+gg_g1 <- gg_g1 + labs(x="Math:Normality G1")
+
+gg_g1 <- gg_g1 + stat_function(data = female, geom = "point", fun=dnorm, args=list(mean=mean(female$g1, na.rm=TRUE), sd=sd(female$g1, na.rm=TRUE)))
+
+gg_g1 <- gg_g1 + stat_function(data = male, geom = "point", fun=dnorm, args=list(mean=mean(male$g1, na.rm=TRUE), sd=sd(male$g1, na.rm=TRUE)))
+
+gg_g1
+
+```
+```{r plot G1 by sex group for Portuguese, echo=TRUE}
+library(ggplot2)
+
+female <- filter(stdPorlagData, stdPorlagData$sex=="F")
+male <- filter(stdPorlagData, stdPorlagData$sex=="M")
+
+gg_g1 <- ggplot(stdPorlagData, aes(x=g1, fill=sex, colour=sex)) + geom_density(alpha = 0.1)
+gg_g1 <- gg_g1 + labs(x="Portuguese language: Normality G1")
+
+gg_g1 <- gg_g1 + stat_function(data = female, geom = "point", fun=dnorm, args=list(mean=mean(female$g1, na.rm=TRUE), sd=sd(female$g1, na.rm=TRUE)))
+
+gg_g1 <- gg_g1 + stat_function(data = male, geom = "point", n=200, fun=dnorm, args=list(mean=mean(male$g1, na.rm=TRUE), sd=sd(male$g1, na.rm=TRUE)))
+
+gg_g1
+
+```
+
+```{r qq G3 , echo=TRUE}
+#qq-plot
+qqnorm(stdMathData$g3)
+qqline(stdMathData$g3, col=2)
+```
+
+```{r statistic summary G3, echo=TRUE}
+library(pastecs)
+pastecs::stat.desc(stdMathData$g3, basic=F)
+``` 
+```{r tpskew&tpkurt g3, echo=TRUE}
+tpskew<-semTools::skew(stdMathData$g3)
+tpkurt<-semTools::kurtosis(stdMathData$g3)
+tpskew[1]/tpskew[2]
+tpkurt[1]/tpkurt[2]
+```
+```{r}
+ztpcoiss<- abs(scale(stdMathData$g3))
+FSA::perc(as.numeric(ztpcoiss), 1.96, "gt")
+```
+```{r}
+FSA::perc(as.numeric(ztpcoiss), 3.29, "gt")
+```
+
+```{r plot G2 by sex group, echo=TRUE}
+gg_g2 <- ggplot(stdMathData, aes(x=stdMathData$g2))
+gg_g2 <- gg_g2 + labs(x="G2")
+gg_g2 <- gg_g2 + geom_histogram(bins = 30,aes(y=..density.., fill=..count..,color=stdMathData$sex))
+#gg_g2 <- gg_g2 + scale_fill_gradient("Count", low="#DCDCDC", high="#7C7C7C")
+
+gg_g2 <- gg_g2 + stat_function(fun=dnorm, color="red",args=list(mean=mean(stdMathData$g2, na.rm=TRUE), sd=sd(stdMathData$g2, na.rm=TRUE)))
+
+gg_g2
+
+```
+
+```{r plot G1 without group , echo=TRUE}
+gg_g1 <- ggplot(stdMathData, aes(x=g1))
+gg_g1 <- gg_g1 + labs(x="G1: Math")
+gg_g1 <- gg_g1 + geom_histogram(binwidth=2, colour="black", aes(y=..density.., fill=..count..))
+gg_g1 <- gg_g1 + scale_fill_gradient("Count", low="#DCDCDC", high="#7C7C7C")
+
+gg_g1 <- gg_g1 + stat_function(fun=dnorm, color="red",args=list(mean=mean(stdMathData$g1, na.rm=TRUE), sd=sd(stdMathData$g1, na.rm=TRUE)))
+
+gg_g1
+```
+
+``` {r , echo=TRUE}
+library(ggplot2)
+gg_g1 <- ggplot(stdMathData, aes(x=stdMathData$g1))
+gg_g1 <- gg_g1 + labs(x="G1: Math")
+gg_g1 <- gg_g1 + geom_histogram(bins = 30,aes(y=..density.., color=sex, fill=..count..))
+gg_g1 <- gg_g1 + stat_function(fun=dnorm, color="red",args=list(mean=mean(stdMathData$g1, na.rm=TRUE), sd=sd(stdMathData$g1, na.rm=TRUE)))
+
+gg_g1
+```
+
+```{r,echo=TRUE}
+gg_g1 <- ggplot(stdPorlagData, aes(x=g1))
+gg_g1 <- gg_g1 + labs(x="G1: Portuguese language")
+gg_g1 <- gg_g1 + geom_histogram(binwidth=2, colour="black", aes(y=..density.., fill=..count..))
+gg_g1 <- gg_g1 + scale_fill_gradient("Count", low="#DCDCDC", high="#7C7C7C")
+
+gg_g1 <- gg_g1 + stat_function(fun=dnorm, color="red",args=list(mean=mean(stdPorlagData$g1, na.rm=TRUE), sd=sd(stdPorlagData$g1, na.rm=TRUE)))
+
+gg_g1
+```
+
+``` {r ,echo=TRUE}
+gg_g1 <- ggplot(stdPorlagData, aes(x=stdPorlagData$g1))
+gg_g1 <- gg_g1 + labs(x="G1: Portuguese language")
+gg_g1 <- gg_g1 + geom_histogram(bins = 30,aes(y=..density.., color=sex, fill=..count..)) 
+gg_g1 <- gg_g1 + stat_function(fun=dnorm, color="red",args=list(mean=mean(stdPorlagData$g1, na.rm=TRUE), sd=sd(stdPorlagData$g1, na.rm=TRUE)))
+
+gg_g1
+```
+### Missing Data
+```{r exploring missing data, echo=TRUE}
+variableint <- c("g1", "g2", "g3", "studytime", "traveltime", "health", "absences", "famrel", "freetime")
+subdata_math <-stdMathData[variableint]
+subdata_por <- stdPorlagData[variableint]
+summary(subdata_math)
+summary(subdata_por)
+```
+
+```{r show missing data: math course, echo=TRUE}
+#Create and inspect patterns of missingness
+res_math<-summary(VIM::aggr(subdata_math, sortVar=TRUE))$combinations
+
+#Output the most common combinations
+head(res_math[rev(order(res_math[,2])),])
+```
+
+```{r show missing data: Portuguese language course, echo=TRUE}
+#Create and inspect patterns of missingness
+res_portuggese<-summary(VIM::aggr(subdata_por, sortVar=TRUE))$combinations
+
+#Output the most common combinations
+head(res_portuggese[rev(order(res_portuggese[,2])),])
+```
+The results show that the variables of interests, no missing data.
+ 
+
+# Explore Data
+## descriptive statistics
+```{r Generate Summary Statistics, echo=TRUE}
+# Center Tendency
+variableint <- c("g1", "g2", "studytime", "traveltime","absences")
+subdata_math <-stdMathData[variableint]
+subdata_por <- stdPorlagData[variableint]
+summary(subdata_math)
+summary(subdata_por)
+
+## summary variability 
+pastecs::stat.desc(stdMathData[variableint], basic=F)
+pastecs::stat.desc(stdPorlagData[variableint], basic=F)
+```
+
+
+## Assessing a variable for Normality
+Step 1: Assessing by plots
+Histogram with normal curve 
+QQ-plot checking if it can be normalised 
+Step 2:  Summary Statistics including measure of skewness and kurtosis. 
+Step 3: Review statistics by plotting to check whether it close to normal data. 
+Step 4: Report correct statistics depend on the assessment and show the result whether the data can follow the normal distribution.
+
+``` {r normality:histogram, echo=TRUE}
+# histogram for math course sample
+
+#study time
+histogr_stdtime <- ggplot(stdMathData, aes(x=studytime)) + 
+                   labs(x="Weekly Study Time for Math Course") + 
+                   geom_histogram(bins=8, colour="blue", aes(y= ..density.., fill=..count..)) +
+                   scale_fill_gradient("count", low="#132B43", high="#56B1F7") +
+                   stat_function(fun=dnorm, color="red", args=list(mean=mean(stdMathData$studytime, na.rm=TRUE), sd=sd(stdMathData$studytime, na.rm=TRUE)))
+
+histogr_stdtime
+boxplot(stdMathData$studytime,
+        main = "Math course: Weekly Study Time",
+        col = "orange",
+        border = "brown",
+        horizontal = TRUE)
+
+# absences
+histogr_ab <- ggplot(stdMathData, aes(x=absences)) + 
+                   labs(x="The number of absences for Math Course") + 
+                   geom_histogram(bins=25, colour="blue", aes(y= ..density.., fill=..count..)) +
+                   scale_fill_gradient("count", low="#132B43", high="#56B1F7") +
+                   stat_function(fun=dnorm, color="red", args=list(mean=mean(stdMathData$absences, na.rm=TRUE), sd=sd(stdMathData$absences, na.rm=TRUE)))
+histogr_ab
+boxplot(stdMathData$absences,
+        main = "Math course: Absences",
+        #xlab = "Number of absences",
+        col = "orange",
+        border = "brown",
+        horizontal = TRUE)
+
+#g1
+histogr_g1 <- ggplot(stdMathData, aes(x=g1)) + 
+                   labs(x="The first period grade for math course") + 
+                   geom_histogram(bins=30, colour="blue", aes(y= ..density.., fill=..count..)) +
+                   scale_fill_gradient("count", low="#132B43", high="#56B1F7") +
+                   stat_function(fun=dnorm, color="red", args=list(mean=mean(stdMathData$g1, na.rm=TRUE), sd=sd(stdMathData$g1, na.rm=TRUE)))
+histogr_g1
+boxplot(stdMathData$g1,
+        main = "Math course: G1",
+        col = "orange",
+        border = "brown",
+        horizontal = TRUE)
+
+#g2
+histogr_g2 <- ggplot(stdMathData, aes(x=g2)) + 
+                   labs(x="The second period grade for math course") + 
+                   geom_histogram(bins=30, colour="blue", aes(y= ..density.., fill=..count..)) +
+                   scale_fill_gradient("count", low="#132B43", high="#56B1F7") +
+                   stat_function(fun=dnorm, color="red", args=list(mean=mean(stdMathData$g1, na.rm=TRUE), sd=sd(stdMathData$g1, na.rm=TRUE)))
+histogr_g2
+boxplot(stdMathData$g1,
+        main = "Math course: G2",
+        col = "orange",
+        border = "brown",
+        horizontal = TRUE)
+
+```
+```{r normality: qq-plot, echo=TRUE}
+#create qq-plot for g1
+qqnorm(stdMathData$g1, xlab = "Math course: G1")
+qqline(stdMathData$g1, col=2)
+
+qqnorm(stdMathData$g2, xlab="Math course: G2")
+qqline(stdMathData$g2, col=2)
+
+qqnorm(stdMathData$absences, xlab="Math course: Number of Absences")
+qqline(stdMathData$absences, col=2)
+
+qqnorm(stdMathData$studytime, xlab="Math course: Weekly Study time")
+qqline(stdMathData$studytime, col=2)
+```
+```{r normality:summary statistics g1, echo=TRUE}
+#g1 generae summary statistics
+pastecs::stat.desc(stdMathData$g1, basic=F)
+
+#skewness and kurtosis
+tpskew <- semTools::skew(stdMathData$g1)
+tpkurt <- semTools::kurtosis(stdMathData$g1)
+
+tpskew
+tpkurt
+
+tpskew[1]/tpskew[2]
+tpkurt[1]/tpkurt[2]
+
+mathg1<- abs(scale(stdMathData$g1))
+FSA::perc(as.numeric(mathg1), 1.96, "gt")
+FSA::perc(as.numeric(mathg1), 3.29, "gt")
+```
+
+```{r normality:summary statistics g2, echo=TRUE}
+#g2 generae summary statistics
+pastecs::stat.desc(stdMathData$g2, basic=F)
+
+#skewness and kurtosis
+tpskew <- semTools::skew(stdMathData$g2)
+tpkurt <- semTools::kurtosis(stdMathData$g2)
+
+tpskew
+tpkurt
+
+tpskew[1]/tpskew[2]
+tpkurt[1]/tpkurt[2]
+
+mathg1<- abs(scale(stdMathData$g2))
+FSA::perc(as.numeric(mathg1), 1.96, "gt")
+FSA::perc(as.numeric(mathg1), 3.29, "gt")
+```
+
+```{r normality summary statistics:studytime, echo=TRUE}
+#study time generae summary statistics
+pastecs::stat.desc(stdMathData$studytime, basic=F)
+
+#skewness and kurtosis
+tpskew <- semTools::skew(stdMathData$studytime)
+
+tpkurt <- semTools::kurtosis(stdMathData$studytime)
+
+tpskew
+tpkurt
+tpskew[1]/tpskew[2]
+tpkurt[1]/tpkurt[2]
+
+mathst<- abs(scale(stdMathData$studytime))
+FSA::perc(as.numeric(mathst), 1.96, "gt") #greater >= 1.96
+FSA::perc(as.numeric(mathst), 3.29, "gt") #greater >= 3.29
+```
+
+```{r normality summary statistics:absences, echo=TRUE}
+#absences generae summary statistics
+pastecs::stat.desc(stdMathData$absences, basic=F)
+
+#skewness and kurtosis
+tpskew <- semTools::skew(stdMathData$absences)
+tpkurt <- semTools::kurtosis(stdMathData$absences)
+
+#tpskew
+#tpkurt
+
+tpskew[1]/tpskew[2]
+
+tpkurt[1]/tpkurt[2]
+
+mathg1<- abs(scale(stdMathData$absences))
+
+#calculate the percentage that are greater than 1.96
+FSA::perc(as.numeric(mathg1), 1.96, "gt")
+# calculate the percentage that are greater than 3.29
+FSA::perc(as.numeric(mathg1), 3.29, "gt")
+```
+
+## Correlation
+
+### 1. The correlation between number of absences (absences) and the first period grade (g1)
+```{r correlation scatterplot, echo=TRUE}
+#show scatterplot of the number of absences and the first period grade
+
+scat_g1 <- ggplot(stdMathData, aes(stdMathData$absences,stdMathData$g1)) +
+#show regression line
+       geom_point() +
+       geom_smooth(method="lm", colour="red", se = F) +
+       labs(x = "The Number of Absences", y = "First Period Grade for Math course")
+scat_g1
+```
+
+```{r correlation pearson, echo=TRUE}
+# Conducting Correlation Tests - Pearson, Spearman, Kendall
+# Pearson corrlection test --- Parametric test
+# Pearson Correlation  (Parametric)
+# Spearman Rank Order Correlation or Kendall’s Tau (Non-Parametric)
+
+#1. Pearson corrlation
+stats::cor.test(stdMathData$g1,stdMathData$absences, method='pearson')
+```
+
+```{r correlation spearman, echo=TRUE}
+#2. Spearman corrleation to check the missing data if the data does not fit a normal distribution, then we can use spearman or kurtosis
+stats::cor.test(stdMathData$g1, stdMathData$absences, method='spearman')
+```
+
+```{r correlation kendall, echo=TRUE}
+#3. kendall which handle ties
+stats::cor.test(stdMathData$g1, stdMathData$absences, method='kendall')
+```
+
+### 2. The correlation between weekly study time (x) and the first period grade (g1) (y)
+```{r, echo=TRUE}
+#show scatterplot of the number of studytime and the first period grade
+scat_st <- ggplot(stdMathData, aes(stdMathData$studytime,stdMathData$g1)) +
+#show regression line
+       geom_point() +
+       geom_smooth(method="lm", colour="red", se = F) +
+       labs(x = "Weekly Study time for Math course", y = "First Period Grade for Math course")
+scat_st
+``` 
+
+```{r orrelation Tests studytime, echo=TRUE}
+# Conducting Correlation Tests - Pearson, Spearman, Kendall
+# Pearson corrlection test --- Parametric test
+# Pearson Correlation  (Parametric)
+# Spearman Rank Order Correlation or Kendall’s Tau (Non-Parametric)
+
+#1. Pearson corrlation
+stats::cor.test(stdMathData$g1,stdMathData$studytime, method='pearson')
+```
+
+```{r, echo=TRUE}
+#2. Spearman corrleation to check the missing data if the data does not fit a normal distribution, then we can use spearman or kurtosis
+stats::cor.test(stdMathData$g1, stdMathData$studytime, method='spearman')
+```
+
+```{r, echo=TRUE}
+#3. kendall which handle ties
+stats::cor.test(stdMathData$g1, stdMathData$studytime,method='kendall')
+```
+### 3. The correlation between second period grade (g2)  (y) and the first period grade (g1) (x)
+```{r, echo=TRUE}
+#show scatterplot of second period grade (g2)  (y) and the first period grade (g1) (x)
+
+scat_g2 <- ggplot(stdMathData, aes(stdMathData$g1, stdMathData$g2)) +
+#show regression line
+       geom_point() +
+       geom_smooth(method="lm", colour="red", se = F) +
+       labs(x = "First Period Grade for Math course", y = "Second Period Grade for Math course")
+scat_g2
+```
+
+```{r, echo=TRUE}
+# Conducting Correlation Tests - Pearson, Spearman, Kendall
+# Pearson corrlection test --- Parametric test
+# Pearson Correlation  (Parametric)
+# Spearman Rank Order Correlation or Kendall’s Tau (Non-Parametric)
+
+#1. Pearson corrlation
+stats::cor.test(stdMathData$g2, stdMathData$g1, method='pearson')
+```
+
+```{r, echo=TRUE}
+#2. Spearman corrleation to check the missing data if the data does not fit a normal distribution, then we can use spearman or kurtosis
+stats::cor.test(stdMathData$g2, stdMathData$g1, method='spearman')
+```
+
+```{r, echo=TRUE}
+#3. kendall which handle ties
+stats::cor.test(stdMathData$g2, stdMathData$g1, method='kendall')
+```

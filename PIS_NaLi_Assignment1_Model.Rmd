@@ -1,0 +1,648 @@
+---
+title: 'PSI_Assignment 1: Digital Portfolio: Modelling Part'
+author: "Na Li (D19125334)"
+---
+
+```{r setup}
+knitr::opts_chunk$set(echo = FALSE)
+needed_packages <- c("VIM", "tidyverse","pastecs", "ggplot2", "semTools", "psych", "FSA", "car", "effectsize", "coin", "rstatix", "sjstats", "userfriendlyscience", "stats", "foreign", "gmodels", "lm.beta","stargazer", "lmtest", "DescTools", "nnet", "reshape2", "generalhoslem", "Epi", "arm", "regclass", "olsrr","REdaS", "Hmisc","corrplot","ggcorrplot", "factoextra", "nFactors")   
+
+# Extract not installed packages
+not_installed <- needed_packages[!(needed_packages %in% installed.packages()[, "Package"])]    
+# Install not installed packages
+if(length(not_installed)) 
+  install.packages(not_installed) 
+
+library(pastecs) #For creating descriptive statistic summaries
+library(ggplot2) #For creating histograms with more detail than plot
+library(semTools) #For skewness and kurtosis
+library(psych)  #For descriptive functions
+library(FSA) #For percentage
+library(car) # For Levene's test for homogeneity of variance and  test for colinearity of predictors
+library(effectsize) #To calculate effect size for t-test
+library(VIM)
+library(tidyverse)
+library(coin) # For Wilcox test (non-parametric)
+library(rstatix) # For calculating effect size
+library(sjstats) #calculate effect size for t-test
+library(userfriendlyscience)
+library(stats)
+library(foreign) # open SPSS file, I may not use that.
+library(gmodels) #For creating histograms with more detail than plot
+library(stargazer)#For formatting outputs/tables for regression
+library(lm.beta) # to isolate the beta co-efficients for regression
+
+#Multinomial regression
+library(lmtest)
+library(DescTools)
+library(nnet) #Multinomial regression
+library(reshape2)
+library(generalhoslem) #For test of fit for logistic regression, test assumption of linearity
+library(Epi) #ROC Curve
+library(arm) #for invlogit calculating predicted probabilities
+library(regclass) #For confusion matrix
+library(olsrr)
+
+#Dimension Reduction
+library(REdaS)
+library(Hmisc)
+library(corrplot)
+library(ggcorrplot)
+library(factoextra) #Used for principal component analysis to get a different view of eigenvalues
+library(nFactors)
+```
+
+```{r initial dataset, echo=TRUE}
+#getwd()
+
+stdMathData=read.table("student-mat.csv",sep=";",header=TRUE)
+stdPorlagData=read.table("student-por.csv",sep=";",header=TRUE)
+
+stdMergeData=merge(stdMathData,stdPorlagData,by=c("school","sex","age","address","famsize","Pstatus","Medu","Fedu","Mjob","Fjob","reason","nursery","internet"))
+
+colnames(stdMathData) <- tolower(colnames(stdMathData))
+colnames(stdPorlagData) <- tolower(colnames(stdPorlagData))
+colnames(stdMergeData) <- tolower(colnames(stdMergeData))
+```
+# Linear Regression
+## Build Linear Regression Model
+```{r linear Regression, echo=TRUE}
+#G1 and G2  for math course with paid (yes, no)
+# G2 is predicted by g1 including dummy variable for paid that extra paid classes within the Math course to investigate a differential effect by paid. 
+# Descriptives and visuals for g1 (first period grade)
+gg_g1 <- ggplot(stdMathData, aes(x=g1)) +
+         labs(x="Normalised first period grade (g1)") +
+         ggtitle("Figure 1 - Histogram for Normalised first period grade of Math") +
+         geom_histogram(binwidth=2, colour="black", aes(y=..density.., fill=..count..)) +
+         scale_fill_gradient("Count", low="#DCDCDC", high="#7C7C7C") + 
+         stat_function(fun=dnorm, color="red",args=list(mean=mean(stdMathData$g1, na.rm=TRUE), sd=sd(stdMathData$g1, na.rm=TRUE)))
+
+gg_g1
+
+qqnorm(stdMathData$g1, main="Figure 2 - QQ Plot for Normalised First period grade of Math")
+qqline(stdMathData$g1, col=2)
+
+# statistics descpritve
+#g1 generae summary statistics
+pastecs::stat.desc(stdMathData$g1, basic=F)
+
+#skewness and kurtosis
+tpskew <- semTools::skew(stdMathData$g1)
+tpkurt <- semTools::kurtosis(stdMathData$g1)
+
+
+tpskew[1]/tpskew[2]
+tpkurt[1]/tpkurt[2]
+
+mathg1<- abs(scale(stdMathData$g1))
+FSA::perc(as.numeric(mathg1), 1.96, "gt")
+FSA::perc(as.numeric(mathg1), 3.29, "gt")
+length(stdMathData$g1)
+```
+```{r g2, echo=TRUE}
+# Descriptives and visuals for g2 (second period grade) ---- predicted
+gg_g2 <- ggplot(stdMathData, aes(x=g2)) +
+         labs(x="Normalised Second period grade") +
+         ggtitle("Figure 3 - Histogram for Normalised second period grade of Math") +
+         geom_histogram(binwidth=2, colour="black", aes(y=..density.., fill=..count..)) +
+         scale_fill_gradient("Count", low="#DCDCDC", high="#7C7C7C") + 
+         stat_function(fun=dnorm, color="red",args=list(mean=mean(stdMathData$g2, na.rm=TRUE), sd=sd(stdMathData$g2, na.rm=TRUE)))
+
+gg_g2
+
+qqnorm(stdMathData$g2, main="Figure 4 - QQ Plot for Normalised second period grade of Math")
+qqline(stdMathData$g2, col=2)
+
+# statistics descpritve
+#g2 generate summary statistics
+pastecs::stat.desc(stdMathData$g2, basic=F)
+
+#skewness and kurtosis
+tpskew <- semTools::skew(stdMathData$g2)
+tpkurt <- semTools::kurtosis(stdMathData$g2)
+
+tpskew[1]/tpskew[2]
+tpkurt[1]/tpkurt[2]
+
+mathg2<- abs(scale(stdMathData$g2))
+FSA::perc(as.numeric(mathg2), 1.96, "gt")
+FSA::perc(as.numeric(mathg2), 3.29, "gt")
+length(stdMathData$g2)
+```
+```{r explore correlation,echo=TRUE}
+# Explore relationship between g1 and g2
+#show scatterplot of second period grade (g2)  (y) and the first period grade (g1) (x)
+
+scat_g2g1 <- ggplot2::ggplot(stdMathData, aes(g1, g2))
+#Add a regression line
+scat_g2g1 + geom_point() + geom_smooth(method = "lm", colour = "Red", se = F) + labs(x = "1st Period Grade for Math course", y = "Normalised 2nd Period Grade for Math course") 
+
+#Pearson Correlation
+stats::cor.test(stdMathData$g1, stdMathData$g2, method='pearson')
+```
+```{r simple linear regression,echo=TRUE}
+# simple linear regression -> g2 predicted by g1
+model_g1g2 <- lm(stdMathData$g2 ~ stdMathData$g1)
+anova(model_g1g2)
+
+cat("\n *******Summary Model_g1g2*******\n") 
+summary(model_g1g2)
+```
+```{r analyize model_g1g2,echo=TRUE}
+lm.beta::lm.beta(model_g1g2)
+stargazer(model_g1g2, type="text") #Tidy output of all the required stats
+```
+```{r MLR, echo=TRUE}
+# add paid: extra paid classes within the course subject (Math or Portuguese) (binary: yes or no)
+# paid as dummy variable 
+model_g1g2p <- lm(stdMathData$g2 ~ stdMathData$g1 + stdMathData$paid)
+anova(model_g1g2p)
+cat("\n *******Summary Model_g1g2p*******\n") 
+summary(model_g1g2p)
+```
+```{r analyize model_g1g2p,echo=TRUE}
+lm.beta::lm.beta(model_g1g2p)
+stargazer(model_g1g2p, type="text")
+```
+
+## Linear Model Assumptions
+```{r Assumptions: the model meets key assumptions, echo=TRUE}
+
+#Influential Outliers - Cook's distance
+cooksd_modelg1g2p<-sort(cooks.distance(model_g1g2p))
+
+# plot Cook's distance
+plot(cooksd_modelg1g2p, pch="*", cex=2, main="Influential Observations by Cooks distance")  
+abline(h = 4*mean(cooksd_modelg1g2p, na.rm=T), col="red")  # add cutoff line
+# add labels
+text(x=1:length(cooksd_modelg1g2p)+1, y=cooksd_modelg1g2p, labels=ifelse(cooksd_modelg1g2p>4*mean(cooksd_modelg1g2p, na.rm=T),names(cooksd_modelg1g2p),""), col="blue")  
+```
+```{r influential observations, echo=TRUE}
+influential <- as.numeric(names(cooksd_modelg1g2p)[(cooksd_modelg1g2p > 4*mean(cooksd_modelg1g2p, na.rm=T))])  # influential row numbers
+stem(influential)
+
+head(stdMathData[influential, ])  # influential observations.
+
+cat("\n *******influential observations - the values of g1*******\n") 
+head(stdMathData[influential, ]$g1)
+cat("\n *******influential observations - the values of g2*******\n") 
+head(stdMathData[influential, ]$g2)
+cat("\n *******influential observations - the values of paid*******\n") 
+head(stdMathData[influential, ]$paid)
+```
+```{r outlier, echo=TRUE}
+car::outlierTest(model_g1g2p) # Bonferonni p-value for most extreme obs, looking for any cases where the outcome variable has an unusual variable for its predictor values.
+```
+```{r leverage, echo=TRUE}
+car::leveragePlots(model_g1g2p) # leverage plots
+```
+```{r Assess homocedasticity, echo=TRUE}
+plot(model_g1g2p, 1)
+plot(model_g1g2p, 3)
+```
+```
+The first plot is the chart of residuals vs fitted values, in the second plot the standardised residuals are on the Y axis. If there is absolutely no heteroscedastity, you should see a completely random, equal distribution of points throughout the range of X axis and a flat red line. I expect to see that there is no pattern in the residuals and that they are equally spread around the y = 0 line - the dashed line.
+in this case, as the red line is slightly distorted in the middle on first plot but is not a big problem. Looking at the second plot we can see that while it is a problem it is not huge. Only a concern if there are definite patterns.
+```
+```{r histogram and qq, echo=TRUE}
+#Create histogram and  density plot of the residuals
+plot(density(resid(model_g1g2p))) 
+
+#Create a QQ plotqqPlot(model, main="QQ Plot") #qq plot for Standardised residuals 
+car::qqPlot(model_g1g2p, main="QQ Plot")
+```
+```{r}
+cat("\n ****** Calculate Collinearity ******\n") 
+vifmodel<-car::vif(model_g1g2p)
+vifmodel
+
+cat("\n ****** Calculate tolerance ******\n") 
+1/vifmodel
+```
+
+```
+Report Linear Model:
+
+
+A multiple regression was carried out to investigate whether first period grades of Math course and extra paid classes within the course subject could significantly predict participants’ second period grades. second period grades of the histogram, normal QQ plot of standardised residuals and the scatterplot of the dependent variable, second period grades and the standardised residuals showed that the some outliers existed. 
+However, second period grades of the standardised residuals showed that could be considered to have undue influence (95% within limits of -1.96 to plus 1.96 and with Cook’s distance >1 as outlined in Field (2013). 
+The scatterplot of standardised residuals showed that the data met the assumptions of homogeneity of variance and linearity. Examination for multicollinearity showed that the tolerance and variance influence factor measures were within acceptable levels (tolerance >0.4, VIF <2.5 ) as outlined in Tarling (2008). 
+The data also meets the assumption of non-zero variances of the predictors.
+The results of the regression indicated that the model explained 72.99% of the variance and that the model was a significant predictor of the second period grades, F(2,26) = 533.4, p < 0.001. While the first period grades contributed significantly to the model (B = 0.962, p<0.001), the extra paid classes contributed significantly to the model as well (B = 0.543, p < 0.05). The final predictive model was: second period grades of Math = -0.034 + (0.962*first period grades) + (0.543*extra paid classes)
+
+```
+
+
+
+
+# Logistic Regression
+```{r multinomial logistic regression, echo=TRUE}
+#age, higher -> studytime
+# age 15 ~ 22 
+# higher: wants to take higher education (binary: yes or no)
+# studytime: weekly study time (numeric: 1 - <2 hours, 2 - 2 to 5 hours, 3 - 5 to 10 hours, or 4 - >10 hours)
+cat("\n *******table: higher/studytime*******\n") 
+with(stdPorlagData, table(higher, studytime))
+cat("\n *******age, studytime*******\n") 
+with(stdPorlagData, do.call(rbind, tapply(age, studytime, function(x) c(M=mean(x), SD=sd(x)))))
+```
+```{r build model, echo=TRUE}
+
+#Because studytime has four levels we need to indicate which level is a reference
+#be comparing the other types of studytime to 2 (2-5 hours)
+stdPorlagData$studytime2 <- relevel(as.factor(stdPorlagData$studytime), ref="2")
+
+#create the model using multinom
+model_multilog<-multinom(studytime2~higher+age, data = stdPorlagData,model = TRUE)
+cat("\n *******Summary Model*******\n") 
+summary(model_multilog)
+```
+```{r Evaluation and Assumptions model, echo=TRUE}
+#multinom package does not include p-value calculation for the regression coefficients, 
+#calculate p-values using Wald tests (here z-tests).
+cat("\n *******z-tests*******\n") 
+z <- summary(model_multilog)$coefficients/summary(model_multilog)$standard.errors
+z
+cat("\n *******p-value*******\n") 
+pvalue <- (1 - pnorm(abs(z), 0, 1)) * 2
+pvalue
+
+cat("\n *******Chi-square plus significance*******\n") 
+lmtest::lrtest(model_multilog)
+
+cat("\n *******Pseudo Rsquared*******\n") 
+DescTools::PseudoR2(model_multilog, which="CoxSnell")
+DescTools::PseudoR2(model_multilog, which="Nagelkerke")
+
+cat("\n *******Collinearity VIF*******\n")
+
+# It is however sensitive to high correlation between predictor variables (multicollinearity)
+
+vifmodel<-car::vif(model_multilog)  # GVIF^(1/(2*Df)) is the value of interest
+vifmodel
+
+cat("\n *******Tolerance*******\n")
+1/vifmodel
+
+cat("\n *******the sensitivity, specificity, and ROC plot*******\n")
+Epi::ROC(form=stdPorlagData$studytime2 ~ stdPorlagData$higher+stdPorlagData$age, plot="ROC")
+
+cat("\n *******Summary of the model with co-efficients*******\n")
+stargazer(model_multilog, type="text")
+
+cat("\n *******Exponentiate the coefficients*******\n")
+exp(coefficients(model_multilog))
+
+cat("\n ****** odds ratios and 95% CI *******\n")  
+# Odds ratios are used to calculate probabilities in a regression
+# OR > 1: Predictor up, Probability of outcome occurring up.
+# OR < 1: Predictor down, Probability of outcome occurring down.
+
+cbind(Estimate=round(coef(model_multilog),4), OR=round(exp(coef(model_multilog)),4))
+
+#Check the assumption of linearity of independent variables and log odds using a Hosmer-Lemeshow test
+generalhoslem::logitgof(stdPorlagData$studytime2, fitted(model_multilog))
+```
+
+``` {r fit model, echo=TRUE}
+#calculate predicted probabilities for each of outcome levels using the fitted function
+pp <- fitted(model_multilog)
+
+dses <- data.frame(higher = c("yes", "no"), age = mean(stdPorlagData$age))
+
+#look at the averaged predicted probabilities for different values of the continuous predictor variable write within each level of paid
+dwrite_age <- data.frame(higher = rep(c("yes", "no")), age = rep(c(15:22),3))
+
+## store the predicted probabilities for each value of age and paid
+pp.write_agepaid <- cbind(dwrite_age, predict(model_multilog, newdata = dwrite_age, type = "probs", se = TRUE))
+
+## calculate the mean probabilities within each level of age
+by(pp.write_agepaid[, 3:5], pp.write_agepaid$higher, colMeans)
+lpp <- reshape2::melt(pp.write_agepaid, id.vars = c("higher", "age"), value.name = "probability")
+
+head(lpp)  # view first few rows
+
+## plot predicted probabilities across write values for each level of age
+ggplot(lpp, aes(x = age, y = probability, colour = higher)) + geom_line() + facet_grid(variable ~
+    ., scales = "free")
+```
+
+```
+Report of Logistic regression:
+A multinomial logistic regression analysis was conducted with weekly study time for Portuguese course as the outcome variable (1 - <2 hours, 2 - 2 to 5 hours, 3 - 5 to 10 hours, or 4 - >10 hours) with student age (15-22), and want to take higher education as predictors. 
+The data met the assumption for independent observations. Examination for multicollinearity showed that the tolerance and variance influence factor measures were not within acceptable levels (tolerance >0.4, VIF <2.5 ) as outlined in Tarling (2008). The Hosmer Lemeshow goodness of fit statistic did not indicate any issues with the assumption of linearity between the independent variables and the log odds of the model (χ2(n=12) =11.09, p =0.9).
+```
+
+
+# Dimension Reduction
+dataset from 50 items, for this dimension reduction, I selected three factors: agreebleness, extraversion and openness
+
+```{r get new subset data for DR, choose subset dataset, echo=TRUE}
+std = read.table("studentpIusepersonality.csv",sep=",",header=TRUE) 
+std_quest <- std[, -(1:54)]
+# subset dataset only keep the IPIP Big-Five 50 item 
+cols_A = paste0("A", c(1,2,3,4,5,6,7,8,9,10)) #agreeableness
+cols_E = paste0("E", c(1,2,3,4,5,6,7,8,9,10)) #Extraversion
+cols_C = paste0("C", c(1,2,3,4,5,6,7,8,9,10)) #Conscientiousness
+cols_N = paste0("N", c(1,2,3,4,5,6,7,8,9,10)) #Neuroticism
+cols_O = paste0("O", c(1,2,3,4,5,6,7,8,9,10)) #Openness
+
+
+cols <- c(cols_A, cols_E, cols_O)
+std_AEO = std_quest[cols]
+
+std_AEO  #30columns
+```
+
+## Step 1 explore correlation and significance by visualisation
+```{r correlation matrix, echo=TRUE}
+
+# 1 correlation matrix
+perstdMatrix_AEO<-cor(std_AEO)
+round(perstdMatrix_AEO, 2)
+
+Hmisc::rcorr(as.matrix(std_AEO))
+```
+
+```{r ggcorrplot, echo=TRUE}
+pMat <- ggcorrplot::cor_pmat(std_AEO)
+ggcorrplot::ggcorrplot(perstdMatrix_AEO, tl.cex = 8, title="Correlation Matric for Stduent Personality data (A,E,O)") + theme(axis.text.x = element_text(margin=ggplot2::margin(-2,0,0,0)),
+        axis.text.y = element_text(margin=ggplot2::margin(0,-2,0,0)),
+        panel.grid.minor = element_line(size=10))
+#Showing X for non-significant correlations
+ggcorrplot::ggcorrplot(perstdMatrix_AEO, tl.cex = 8, title = "Correlation matrix for Stduent Personality data (A,E,O)", p.mat = pMat, sig.level = 0.05)
+
+#Showing lower diagonal
+ggcorrplot::ggcorrplot(perstdMatrix_AEO, tl.cex = 8, title = "Correlation matrix for Stduent Personality data (A,E,O)", p.mat =  pMat, sig.level = 0.05, type="lower")
+
+
+```
+
+``` {r non-significant correlations, echo=TRUE}
+#Overlay plot with a white grid to space things out for non-significant correlations
+ggcorrplot(perstdMatrix_AEO, sig.level=0.05, lab_size = 4.5, p.mat = NULL,
+           insig = c("pch", "blank"), pch = 1, pch.col = "black", pch.cex =1,
+           tl.cex = 8) +
+  theme(axis.text.x = element_text(margin=ggplot2::margin(-2,0,0,0)),
+        axis.text.y = element_text(margin=ggplot2::margin(0,-2,0,0)),
+        panel.grid.minor = element_line(size=10)) + 
+  geom_tile(fill="white") +
+  geom_tile(height=0.8, width=0.8)
+```
+``` {r visualization for different aspects, echo=TRUE}
+#Showing the co-coefficients (this will be messy given the number of variables)
+ggcorrplot::ggcorrplot(perstdMatrix_AEO, lab=TRUE, title = "Correlation matrix for Stduent Personality data (A,E,O)",  type="lower")
+
+#Visualization of correlations using shade
+#corrplot parameters method = c("circle", "square", "ellipse", "number", "shade",
+#"color", "pie")
+#type = c("full", "lower", "upper"),
+
+corrplot::corrplot(perstdMatrix_AEO, method="ellipse")
+
+corrplot::corrplot(perstdMatrix_AEO, method="circle", type="upper")
+
+corrplot::corrplot(perstdMatrix_AEO, method="number")
+```
+```{r Visualization for p-value, echo=TRUE}
+#About significance level at 0.05, and Non-significant 
+
+res_max_AEO <- corrplot::cor.mtest(perstdMatrix_AEO, conf.level = .95)
+res_max_AEO
+corrplot::corrplot(perstdMatrix_AEO, p.mat = res_max_AEO$p, type="lower", sig.level = .05)
+
+#Showing p-value for non-significant results
+corrplot(perstdMatrix_AEO, p.mat = res_max_AEO$p, type="lower",insig = "p-value")
+```
+
+## Step 2: Check if data is suitable - look at the relevant Statistics 
+checking for multicollinearity, inspect determinant > 0.00001
+1. Barteltt's test: 
+2. KMO Measure of Sampling Adequacy
+3. Determinant test
+
+```{r Bartletts test, echo=TRUE}
+# Bartlett’s test: test variables are correlated
+#Compares the correlation matrix with a matrix of zero correlations (technically called the identity matrix, #which consists of all zeros except the 1’s along the diagonal). 
+
+
+cat("\n *** Barteltt's test result for Stduent Personality data (A,E,O) *** \n")
+psych::cortest.bartlett(std_AEO)
+
+cat("\n *** Barteltt's test result for Stduent Personality Correlation Matrix (A,E,O) *** \n")
+psych::cortest.bartlett(perstdMatrix_AEO, n=nrow(std_AEO))
+```
+
+```{r KMO test, echo=TRUE}
+# KMO test:the proportion of variance in your variables that might be caused by an underlying factor. 
+# High values close to 1 ->  PCA/FA might be useful
+# Values over 0.8 or over are considered strong
+# Anything less than 0.5 suggests that PCA/FA won’t be useful
+# KMO reference:
+# 0.00 to 0.49 unacceptable.
+# 0.50 to 0.59 miserable.
+# 0.60 to 0.69 mediocre.
+# 0.70 to 0.79 middling.
+# 0.80 to 0.89 meritorious.
+# 0.90 to 1.00 marvellous.
+
+cat("\n *** KMO test result for Stduent Personality data (A,E,O) *** \n")
+REdaS::KMOS(std_AEO)
+
+cat("\n *** KMO test result for Stduent Personality Correlation Matrix (A,E,O) *** \n")
+psych::KMO(std_AEO)
+
+#the result is 0.82, PCA/FA is userful
+```
+
+```{r Determinant test, echo=TRUE}
+# Determinant test
+#Indicator of multicollinearity
+#Should be greater than 0.00001 = 1.0e-5
+
+cat("\n *** Determinant test result for Stduent Personality data (A,E,O) *** \n")
+det(cor(std_AEO))
+
+cat("\n *** Determinant test result for Stduent Personality Correlation Matrix (A,E,O) *** \n")
+det(perstdMatrix_AEO)
+
+#the result is greater than 0.00001
+```
+
+## Step 3: Dimension Reduction by PCA (Principal Components Analysis)
+
+```{r PCA, Echo=TRUE}
+
+#On raw data using principal components analysis
+#For PCA we know how many factors if is possible to find
+#principal will work out our loadings of each variable onto each component, the proportion each component explained and the cumulative proportion of variance explained 
+
+pca <-  principal(std_AEO, nfactors = 30, rotate = "none")
+pca <-  principal(std_AEO, nfactors = length(std_AEO), rotate = "none")
+pca #output all details of the PCA
+
+# “p”: Points.
+# “l”: Lines.
+# “b”: Both.
+# “c”: The lines part alone of “b”
+# “o”: Both “overplotted”
+# “h”: Histogram like (or high-density) vertical lines.
+# “n”: No plotting.
+plot(pca$values, type = "o") 
+```
+```{r FA, echo=TRUE}
+#Factor Analysis
+#Principal Axis Factoring fm=pa
+factsol <- fa(perstdMatrix_AEO, nfactors=3, obs=NA, n.iter=1, rotate="varimax", fm="pa")
+psych::print.psych(factsol,cut=0.3, sort=TRUE)
+fa.graph(factsol)
+fa.sort(factsol$loading)
+fa.diagram(factsol)#create a diagram showing the factors and how the manifest variables load
+plot(factsol$values, type = "b") #scree plot
+
+#Cattell (1966) suggests using the ‘point of inflexion’ of the scree plot to decide how many factors to extract
+```
+
+## Step 4: Decide which components to retain by PCA
+```{r, echo=TRUE}
+
+cat("\n ****** the variance explained by each component ****** \n")
+pca$Vaccounted
+
+cat("\n *********** the Eigenvalues ************ \n")
+pca$values
+#eigenvalues  = the variance of a component or factor (>1) Kaiser (1960)
+
+
+#for Extracting the factors
+pcf=princomp(std_AEO)
+factoextra::get_eigenvalue(pcf)
+
+
+```
+``` {r visualizing, Echo=TRUE}
+# Visualizing the Eigenvalues
+factoextra::fviz_eig(pcf, addlabels = TRUE, ylim = c(0, 50))
+
+factoextra::fviz_pca_var(pcf, col.var = "cos2",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+             repel = TRUE # Avoid text overlapping
+             )
+```
+```{r, echo=TRUE}
+cat("\n *********** PCA: Above the level of 0.3 ************ \n")
+psych::print.psych(pca, cut = 0.3, sort = TRUE)
+
+#create a diagram showing the components and how the manifest variables load
+fa.diagram(pca) 
+
+```
+
+```{r, echo=TRUE}
+cat("\n *********** Variables on to components ************ \n")
+fa.sort(pca$loading)
+```
+
+```{r, echo=TRUE}
+# The communalities of variables across components (will be one for PCA since all the variance is used)
+# In the initial PCA because we have as many components/factors as manifest variables this will be 1
+pca$communality 
+
+#Visualize contribution of variables to each component
+var <- factoextra::get_pca_var(pcf)
+corrplot::corrplot(var$contrib, is.corr=FALSE)
+
+# Contributions of variables to PC1
+factoextra::fviz_contrib(pcf, choice = "var", axes = 1, top = 10)
+
+# Contributions of variables to PC2
+factoextra::fviz_contrib(pcf, choice = "var", axes = 2, top = 10)
+
+# Contributions of variables to PC3
+factoextra::fviz_contrib(pcf, choice = "var", axes = 3, top = 10)
+```
+## Step 5: Apply rotation
+The aim of rotation is to clarify the data structure.
+The factor patterns define decreasing amounts of variation in the data. 
+Each pattern may involve all or most of the variables and the variables may have moderate or high loadings for several factor patterns.
+Geometric Rotation
+```{r, echo=TRUE}
+#Apply rotation to try to refine the component structure
+pc_rotat <-  principal(std_AEO, nfactors = 3, rotate = "varimax") #Extracting 3 factors
+
+cat("\n\n ****************** Output the components **************** \n")
+psych::print.psych(pc_rotat, cut = 0.3, sort = TRUE)
+
+cat("\n\n ****************** Output the communalities **************** \n")
+pc_rotat$communality
+```
+## Step 6: Dimension reduction and Decide which factores/compenents to retain
+
+```{r, echo=TRUE}
+#Factor Analysis - the default here is principal axis factoring fm=pa
+#If we know our data going in is normally distributed we use maximum likelihood
+facsol <- psych::fa(perstdMatrix_AEO, nfactors=3, obs=NA, n.iter=1, rotate="varimax", fm="pa")
+
+plot(facsol$values, type = "b") #scree plot
+
+cat("\n *** the Variance accounted for each factor/component *** \n")
+facsol$Vaccounted #(3 factors)
+
+cat("\n\n ******* Output the Eigenvalues ******* \n")
+facsol$values 
+
+cat("\n\n ******* the components with loadings ******* \n")
+psych::print.psych(facsol,cut=0.3, sort=TRUE)
+
+cat("\n\n *******  sorted list of loadings ******* \n")
+fa.sort(facsol$loading)
+
+#create a diagram showing the factors and how the manifest variables load
+fa.diagram(facsol)
+```
+## Step 7: Rotation for 3 factors
+```{r, echo=TRUE}
+#Apply rotation to try to refine the component structure
+facsolrot <-  principal(perstdMatrix_AEO, rotate = "varimax")
+
+cat("\n\n ******* Output the components ******* \n")
+psych::print.psych(facsolrot, cut = 0.3, sort = TRUE)
+
+cat("\n\n ******* Output the communalities ******* \n")
+facsolrot$communality
+```
+
+## Step 8: Reliability Analysis
+```{r,}
+
+agree_a<-std_AEO[c(cols_A)]
+extra_e <- std_AEO[c(cols_E)]
+open_o <- std_AEO[c(cols_O)]
+
+#Output our Cronbach Alpha values
+#If it’s high (say .80 or .90), then probably have one factor/component
+#George and Mallery provide the following rules of thumb: 
+ #> .9 – Excellent
+#> .8 – Good
+#> .7 – Acceptable
+#> .6 – Questionable 
+#> .5 – Poor and 
+#< .5 – Unacceptable
+
+psych::alpha(agree_a,check.keys=TRUE)
+```
+```{r}
+psych::alpha(extra_e, check.keys=TRUE) #for illustrative proposes
+```
+
+```{r}
+psych::alpha(open_o, check.keys=TRUE) #for illustrative proposes
+```
+
+```
+report: A,E,O three Types of Items
+  
+A principal component analysis (PCA) was conducted on the 30 items with orthogonal rotation (varimax).  Bartlett’s test of sphericity, Χ2(435) = 3978.985, p< .001, indicated that correlations between items were sufficiently large for PCA.  An initial analysis was run to obtain eigenvalues for each component in the data.  Four components had eigenvalues over Kaiser’s criterion of 1 and in combination explained 50.94% of the variance.  The scree plot was slightly ambiguous and showed inflexions that would justify retaining either 3 or 5 factors.  
+Given the large sample size, and the convergence of the scree plot and Kaiser’s criterion on three components, three components were retained in the final analysis. component 1 represents agreeableness , component 2 extraversion and component 3 openness.
+The aggrement component subscales of the RAQ had high reliability, Cronbach’s α = 0.80; the openess subscales of the RAQ had great reliability, Cronbach’s α = 0.79.  The extraversion of statistics do not achieve a reliability of Cronbach’s α = 0.76, refer to Goldberg LR, Johnson JA, Eber HW, et al (2006) .
+```
